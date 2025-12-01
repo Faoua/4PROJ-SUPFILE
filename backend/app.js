@@ -44,26 +44,32 @@ app.use(passport.session());
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'SUPFile Backend API is running!',
+    message: 'SUPFile Backend API is running! *****************************',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     database: 'connected',
     oauth: {
       google: !!process.env.GOOGLE_CLIENT_ID,
-      github: !!process.env.GITHUB_CLIENT_ID
+      github: !!process.env.GITHUB_CLIENT_ID,
+      microsoft: !!process.env.MICROSOFT_CLIENT_ID
     }
   });
 });
 
 // Routes API
 const authRoutes = require('./src/routes/authRoutes');
+const fileRoutes = require('./src/routes/fileRoutes');
+const folderRoutes = require('./src/routes/folderRoutes');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/folders', folderRoutes);
 
 // Route de test
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
-    message: 'API fonctionnelle avec base de données et OAuth2',
+    message: 'API fonctionnelle avec base de données, OAuth2 et gestion de fichiers !',
     version: '1.0.0'
   });
 });
@@ -95,34 +101,38 @@ const startServer = async () => {
     const dbConnected = await testConnection();
     
     if (!dbConnected) {
-      console.error('Impossible de démarrer le serveur sans base de données');
+      console.error(' Impossible de démarrer le serveur sans base de données');
       process.exit(1);
     }
 
     // Synchroniser les modèles avec la base de données
     await sequelize.sync({ alter: true });
-    console.log('Modèles synchronisés avec la base de données');
+    console.log(' Modèles synchronisés avec la base de données');
 
     // Démarrer le serveur
     app.listen(PORT, () => {
       console.log('');
       console.log('========================================');
-      console.log('SUPFile Backend Started!');
+      console.log(' SUPFile Backend Started!');
       console.log('========================================');
-      console.log(`Environment: ${process.env.NODE_ENV}`);
-      console.log(`Port: ${PORT}`);
-      console.log(`URL: http://localhost:${PORT}`);
-      console.log(`Health: http://localhost:${PORT}/health`);
-      console.log(`Auth: http://localhost:${PORT}/api/auth`);
+      console.log(` Environment: ${process.env.NODE_ENV}`);
+      console.log(` Port: ${PORT}`);
+      console.log(` URL: http://localhost:${PORT}`);
+      console.log(` Health: http://localhost:${PORT}/health`);
+      console.log('');
+      console.log(' Endpoints:');
+      console.log(`   Auth: http://localhost:${PORT}/api/auth`);
+      console.log(`   Files: http://localhost:${PORT}/api/files`);
+      console.log(`   Folders: http://localhost:${PORT}/api/folders`);
       console.log('');
       console.log('OAuth2 Providers:');
-      console.log(`  Google: ${process.env.GOOGLE_CLIENT_ID ? 'Enabled' : 'Disabled'}`);
-      console.log(`  GitHub: ${process.env.GITHUB_CLIENT_ID ? 'Enabled' : 'Disabled'}`);
+      console.log(`  ${process.env.GOOGLE_CLIENT_ID ? '' : ''} Google`);
+      console.log(`  ${process.env.GITHUB_CLIENT_ID ? '' : ''} GitHub`);
       console.log('========================================');
       console.log('');
     });
   } catch (error) {
-    console.error('Erreur lors du démarrage du serveur:', error);
+    console.error(' Erreur lors du démarrage du serveur:', error);
     process.exit(1);
   }
 };
