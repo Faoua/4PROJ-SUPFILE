@@ -4,8 +4,8 @@ const passport = require('../config/passport');
 const authController = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
- // ROUTES TRADITIONNELLES
- 
+// ROUTES TRADITIONNELLES
+
 // Routes publiques
 router.post('/register', authController.register);
 router.post('/login', authController.login);
@@ -13,8 +13,8 @@ router.post('/login', authController.login);
 // Routes protégées
 router.get('/me', protect, authController.getMe);
 
- // ROUTES OAUTH2 - GOOGLE
- 
+// ROUTES OAUTH2 - GOOGLE
+
 // Initier l'authentification Google
 router.get('/google', 
   passport.authenticate('google', { 
@@ -32,8 +32,8 @@ router.get('/google/callback',
   authController.googleCallback
 );
 
- // ROUTES OAUTH2 - GITHUB
- 
+// ROUTES OAUTH2 - GITHUB
+
 // Initier l'authentification GitHub
 router.get('/github',
   passport.authenticate('github', { 
@@ -50,7 +50,5 @@ router.get('/github/callback',
   }),
   authController.githubCallback
 );
-
- 
 
 module.exports = router;

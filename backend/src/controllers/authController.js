@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models/User');
+const { User } = require('../models/user');
 
 // Générer un token JWT
 const generateToken = (userId) => {
@@ -167,10 +167,6 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// ==========================================
-// CALLBACKS OAUTH2
-// ==========================================
-
 // Callback Google
 exports.googleCallback = (req, res) => {
   try {
@@ -201,21 +197,6 @@ exports.githubCallback = (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
   } catch (error) {
     console.error('Erreur GitHub callback:', error);
-    res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
-  }
-};
-
-// Callback Microsoft
-exports.microsoftCallback = (req, res) => {
-  try {
-    if (!req.user) {
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
-    }
-
-    const token = generateToken(req.user.id);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
-  } catch (error) {
-    console.error('Erreur Microsoft callback:', error);
     res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };

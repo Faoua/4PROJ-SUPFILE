@@ -1,8 +1,7 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
-const MicrosoftStrategy = require('passport-microsoft').Strategy;
-const { User } = require('../models/User');
+const { User } = require('../models/user');
 
 // Sérialisation de l'utilisateur
 passport.serializeUser((user, done) => {
@@ -19,9 +18,7 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-
 // STRATÉGIE GOOGLE
-
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     new GoogleStrategy(
@@ -76,7 +73,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 // STRATÉGIE GITHUB
-
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
   passport.use(
     new GitHubStrategy(
@@ -119,57 +115,6 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
             firstName: nameParts[0],
             lastName: nameParts.slice(1).join(' '),
             profilePicture: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
-            isEmailVerified: true
-          });
-
-          done(null, user);
-        } catch (error) {
-          done(error, null);
-        }
-      }
-    )
-  );
-}
-
-// STRATÉGIE MICROSOFT
-
-if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
-  passport.use(
-    new MicrosoftStrategy(
-      {
-        clientID: process.env.MICROSOFT_CLIENT_ID,
-        clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-        callbackURL: `${process.env.BACKEND_URL}/api/auth/microsoft/callback`,
-        scope: ['user.read']
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          // Chercher un utilisateur avec cet ID Microsoft
-          let user = await User.findOne({ where: { microsoftId: profile.id } });
-
-          if (user) {
-            return done(null, user);
-          }
-
-          // Récupérer l'email
-          const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
-
-          if (email) {
-            user = await User.findOne({ where: { email } });
-            
-            if (user) {
-              user.microsoftId = profile.id;
-              await user.save();
-              return done(null, user);
-            }
-          }
-
-          // Créer un nouveau compte
-          user = await User.create({
-            microsoftId: profile.id,
-            email: email,
-            firstName: profile.name.givenName,
-            lastName: profile.name.familyName,
             isEmailVerified: true
           });
 

@@ -50,11 +50,6 @@ const User = sequelize.define('User', {
     allowNull: true,
     unique: true
   },
-  microsoftId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    unique: true
-  },
   profilePicture: {
     type: DataTypes.STRING,
     allowNull: true

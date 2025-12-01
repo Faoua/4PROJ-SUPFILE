@@ -44,14 +44,13 @@ app.use(passport.session());
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'SUPFile Backend API is running! ',
+    message: 'SUPFile Backend API is running!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     database: 'connected',
     oauth: {
       google: !!process.env.GOOGLE_CLIENT_ID,
-      github: !!process.env.GITHUB_CLIENT_ID,
-      microsoft: !!process.env.MICROSOFT_CLIENT_ID
+      github: !!process.env.GITHUB_CLIENT_ID
     }
   });
 });
@@ -64,7 +63,7 @@ app.use('/api/auth', authRoutes);
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
-    message: 'API fonctionnelle avec base de données et OAuth2 !',
+    message: 'API fonctionnelle avec base de données et OAuth2',
     version: '1.0.0'
   });
 });
@@ -107,16 +106,18 @@ const startServer = async () => {
     // Démarrer le serveur
     app.listen(PORT, () => {
       console.log('');
-       console.log('SUPFile Backend Started!');
-       console.log(`Environment: ${process.env.NODE_ENV}`);
+      console.log('========================================');
+      console.log('SUPFile Backend Started!');
+      console.log('========================================');
+      console.log(`Environment: ${process.env.NODE_ENV}`);
       console.log(`Port: ${PORT}`);
       console.log(`URL: http://localhost:${PORT}`);
       console.log(`Health: http://localhost:${PORT}/health`);
       console.log(`Auth: http://localhost:${PORT}/api/auth`);
       console.log('');
       console.log('OAuth2 Providers:');
-      console.log(`  Google: ${process.env.GOOGLE_CLIENT_ID ? 'OK' : 'NO'}`);
-      console.log(`  GitHub: ${process.env.GITHUB_CLIENT_ID ? 'OK' : 'NO'}`);
+      console.log(`  Google: ${process.env.GOOGLE_CLIENT_ID ? 'Enabled' : 'Disabled'}`);
+      console.log(`  GitHub: ${process.env.GITHUB_CLIENT_ID ? 'Enabled' : 'Disabled'}`);
       console.log('========================================');
       console.log('');
     });
