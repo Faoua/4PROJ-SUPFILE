@@ -80,13 +80,17 @@ exports.getFiles = async (req, res) => {
     const userId = req.user.id;
     const folderId = req.query.folderId || null;
     const includeDeleted = req.query.includeDeleted === 'true';
-
+    
     const whereClause = {
       userId,
-      folderId: folderId,
-      isDeleted: includeDeleted ? undefined : false
+      folderId: folderId
     };
-
+    
+    
+    if (!includeDeleted) {
+      whereClause.isDeleted = false;
+    }
+    
     const files = await File.findAll({
       where: whereClause,
       include: [
