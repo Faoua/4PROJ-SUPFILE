@@ -1,7 +1,6 @@
-const { User } = require('./User');
-const { File } = require('./File');
-const { Folder } = require('./Folder');
-
+const { User } = require('./user');    
+const { File } = require('./file');    
+const { Folder } = require('./folder');
   
 
 // User <-> Files (1:N)
