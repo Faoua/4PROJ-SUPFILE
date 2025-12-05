@@ -216,7 +216,7 @@ exports.moveFile = async (req, res) => {
   try {
     const userId = req.user.id;
     const fileId = req.params.id;
-    const { newFolderId } = req.body;
+    const { folderId } = req.body;
 
     const file = await File.findOne({
       where: { id: fileId, userId, isDeleted: false }
@@ -230,9 +230,9 @@ exports.moveFile = async (req, res) => {
     }
 
     // Vérifier que le nouveau dossier existe (si spécifié)
-    if (newFolderId) {
+    if (folderId) {
       const folder = await Folder.findOne({
-        where: { id: newFolderId, userId, isDeleted: false }
+        where: { id: folderId, userId, isDeleted: false }
       });
 
       if (!folder) {
@@ -243,7 +243,7 @@ exports.moveFile = async (req, res) => {
       }
     }
 
-    file.folderId = newFolderId || null;
+    file.folderId = folderId || null;
     await file.save();
 
     res.status(200).json({
