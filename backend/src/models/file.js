@@ -1,7 +1,6 @@
 const { sequelize } = require('../config/database');
 const { DataTypes } = require('sequelize');
 
-// Modèle File
 const File = sequelize.define('File', {
   id: {
     type: DataTypes.UUID,
@@ -56,12 +55,14 @@ const File = sequelize.define('File', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  // Métadonnées pour les prévisualisations
+  isFavorite: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
   thumbnail: {
     type: DataTypes.STRING,
     allowNull: true
   },
-  // Hash pour déduplication (optionnel)
   hash: {
     type: DataTypes.STRING,
     allowNull: true
