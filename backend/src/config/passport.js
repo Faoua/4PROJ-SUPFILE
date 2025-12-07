@@ -1,7 +1,7 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
-const { User } = require('../models/user');
+const { User } = require('../models');
 
 // Sérialisation de l'utilisateur
 passport.serializeUser((user, done) => {
@@ -11,7 +11,7 @@ passport.serializeUser((user, done) => {
 // Désérialisation de l'utilisateur
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id);Q
     done(null, user);
   } catch (error) {
     done(error, null);
