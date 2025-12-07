@@ -103,10 +103,15 @@ exports.getFiles = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Récupérer le stockage utilisé
+    const user = await User.findByPk(userId);
+
     res.status(200).json({
       success: true,
       count: files.length,
-      files
+      files,
+      storageUsed: user.storageUsed || 0,
+      storageQuota: user.storageQuota || 30 * 1024 * 1024 * 1024
     });
   } catch (error) {
     console.error('Erreur getFiles:', error);
