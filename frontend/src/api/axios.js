@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -16,14 +16,25 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// Gérer les erreurs d'authentification
+// Gérer les erreurs
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Si le backend retourne success: false, throw une erreur
+    if (response.data && response.data.success === false) {
+      const error = new Error(response.data.message || 'Erreur');
+      error.response = response;
+      throw error;
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Ne pas rediriger si on est sur login/register
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

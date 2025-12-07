@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SharedFile from './pages/SharedFile';
+import AuthSuccess from './pages/AuthSuccess';   
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -24,6 +25,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/auth/success" element={<AuthSuccess />} />  {/* ← AJOUTE ÇA */}
       <Route path="/share/:token" element={<SharedFile />} />
       <Route
         path="/*"
