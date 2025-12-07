@@ -6,7 +6,14 @@ const morgan = require('morgan');
 const session = require('express-session');
 const { sequelize, testConnection } = require('./src/config/database');
 const passport = require('./src/config/passport');
+
+// Importer TOUTES les routes EN PREMIER
+const authRoutes = require('./src/routes/authRoutes');
+const fileRoutes = require('./src/routes/fileRoutes');
+const folderRoutes = require('./src/routes/folderRoutes');
 const featuresRoutes = require('./src/routes/featuresRoutes');
+const recentRoutes = require('./src/routes/recentRoutes');
+
 const app = express();
 
 // Middlewares de sécurité
@@ -32,7 +39,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 heures
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
@@ -44,33 +51,29 @@ app.use(passport.session());
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'SUPFile Backend API is running! *****************************',
+    message: 'SUPFile Backend API is running!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     database: 'connected',
     oauth: {
       google: !!process.env.GOOGLE_CLIENT_ID,
-      github: !!process.env.GITHUB_CLIENT_ID,
-      microsoft: !!process.env.MICROSOFT_CLIENT_ID
+      github: !!process.env.GITHUB_CLIENT_ID
     }
   });
 });
 
 // Routes API
-const authRoutes = require('./src/routes/authRoutes');
-const fileRoutes = require('./src/routes/fileRoutes');
-const folderRoutes = require('./src/routes/folderRoutes');
-
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api', featuresRoutes);
+app.use('/api', recentRoutes);
 
 // Route de test
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
-    message: 'API fonctionnelle avec base de données, OAuth2 et gestion de fichiers !',
+    message: 'API fonctionnelle!',
     version: '1.0.0'
   });
 });
@@ -93,47 +96,26 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connexion à la base de données et démarrage du serveur
+// Démarrage du serveur
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    // Tester la connexion à la base de données
     const dbConnected = await testConnection();
     
     if (!dbConnected) {
-      console.error(' Impossible de démarrer le serveur sans base de données');
+      console.error('Impossible de démarrer sans base de données');
       process.exit(1);
     }
 
-    // Synchroniser les modèles avec la base de données
     await sequelize.sync({ alter: true });
-    console.log(' Modèles synchronisés avec la base de données');
+    console.log('Modèles synchronisés');
 
-    // Démarrer le serveur
     app.listen(PORT, () => {
-      console.log('');
-      console.log('========================================');
-      console.log(' SUPFile Backend Started!');
-      console.log('========================================');
-      console.log(` Environment: ${process.env.NODE_ENV}`);
-      console.log(` Port: ${PORT}`);
-      console.log(` URL: http://localhost:${PORT}`);
-      console.log(` Health: http://localhost:${PORT}/health`);
-      console.log('');
-      console.log(' Endpoints:');
-      console.log(`   Auth: http://localhost:${PORT}/api/auth`);
-      console.log(`   Files: http://localhost:${PORT}/api/files`);
-      console.log(`   Folders: http://localhost:${PORT}/api/folders`);
-      console.log('');
-      console.log('OAuth2 Providers:');
-      console.log(`  ${process.env.GOOGLE_CLIENT_ID ? '' : ''} Google`);
-      console.log(`  ${process.env.GITHUB_CLIENT_ID ? '' : ''} GitHub`);
-      console.log('========================================');
-      console.log('');
+      console.log(`SUPFile Backend running on port ${PORT}`);
     });
   } catch (error) {
-    console.error(' Erreur lors du démarrage du serveur:', error);
+    console.error('Erreur démarrage:', error);
     process.exit(1);
   }
 };
