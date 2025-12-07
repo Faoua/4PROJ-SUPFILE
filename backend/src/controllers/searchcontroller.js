@@ -24,7 +24,11 @@ const search = async (req, res) => {
       const files = await File.findAll({
         where: {
           userId,
-          name: { [Op.like]: searchTerm }
+          isDeleted: false,
+          [Op.or]: [
+            { name: { [Op.like]: searchTerm } },
+            { originalName: { [Op.like]: searchTerm } }
+          ]
         },
         limit: parseInt(limit),
         offset: parseInt(offset),
@@ -48,6 +52,7 @@ const search = async (req, res) => {
       const folders = await Folder.findAll({
         where: {
           userId,
+          isDeleted: false,
           name: { [Op.like]: searchTerm }
         },
         limit: parseInt(limit),
@@ -68,7 +73,8 @@ const search = async (req, res) => {
     res.json({
       success: true,
       query: q,
-      data: results,
+      files: results.files,
+      folders: results.folders,
       total: results.files.length + results.folders.length
     });
   } catch (error) {
