@@ -430,3 +430,149 @@ exports.emptyTrash = async (req, res) => {
     });
   }
 };
+
+
+// LISTER LA CORBEILLE
+exports.getTrash = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const files = await File.findAll({
+      where: { userId, isDeleted: true },
+      order: [['deletedAt', 'DESC']]
+    });
+
+    const folders = await Folder.findAll({
+      where: { userId, isDeleted: true },
+      order: [['deletedAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      success: true,
+      files,
+      folders
+    });
+  } catch (error) {
+    console.error('Erreur getTrash:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération de la corbeille'
+    });
+  }
+};
+
+// PREVIEW INFO
+exports.getPreviewInfo = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const fileId = req.params.id;
+
+    const file = await File.findOne({
+      where: { id: fileId, userId }
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fichier non trouvé'
+      });
+    }
+
+    const mimeType = file.mimeType || '';
+    let previewType = null;
+    let canPreview = false;
+
+    if (mimeType.startsWith('image/')) {
+      previewType = 'image';
+      canPreview = true;
+    } else if (mimeType.startsWith('video/')) {
+      previewType = 'video';
+      canPreview = true;
+    } else if (mimeType.startsWith('audio/')) {
+      previewType = 'audio';
+      canPreview = true;
+    } else if (mimeType === 'application/pdf') {
+      previewType = 'pdf';
+      canPreview = true;
+    } else if (
+      mimeType.startsWith('text/') ||
+      mimeType === 'application/json' ||
+      mimeType === 'application/javascript' ||
+      mimeType === 'application/xml'
+    ) {
+      previewType = 'text';
+      canPreview = true;
+    }
+
+    res.json({
+      success: true,
+      canPreview,
+      previewType,
+      mimeType,
+      fileName: file.originalName || file.name,
+      size: file.size
+    });
+  } catch (error) {
+    console.error('Erreur getPreviewInfo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des infos'
+    });
+  }
+};
+
+// PREVIEW FICHIER
+exports.previewFile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const fileId = req.params.id;
+
+    const file = await File.findOne({
+      where: { id: fileId, userId }
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fichier non trouvé'
+      });
+    }
+
+    // Vérifier que le fichier existe
+    try {
+      await fs.access(file.path);
+    } catch (err) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fichier physique non trouvé'
+      });
+    }
+
+    const mimeType = file.mimeType || '';
+
+    // Pour les fichiers texte, renvoyer le contenu brut
+    if (
+      mimeType.startsWith('text/') ||
+      mimeType === 'application/json' ||
+      mimeType === 'application/javascript' ||
+      mimeType === 'application/xml'
+    ) {
+      const content = await fs.readFile(file.path, 'utf-8');
+      return res.type('text/plain').send(content);
+    }
+
+    // Pour les autres types, streamer le fichier
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', file.size);
+    
+    const fsSync = require('fs');
+    const stream = fsSync.createReadStream(file.path);
+    stream.pipe(res);
+  } catch (error) {
+    console.error('Erreur previewFile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la prévisualisation'
+    });
+  }
+};
