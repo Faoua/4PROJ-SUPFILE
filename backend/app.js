@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 const { sequelize, testConnection } = require('./src/config/database');
 const passport = require('./src/config/passport');
-
+const featuresRoutes = require('./src/routes/featuresRoutes');
 const app = express();
 
 // Middlewares de sécurité
@@ -64,6 +64,7 @@ const folderRoutes = require('./src/routes/folderRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/folders', folderRoutes);
+app.use('/api', featuresRoutes);
 
 // Route de test
 app.get('/api/test', (req, res) => {
