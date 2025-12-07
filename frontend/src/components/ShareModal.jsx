@@ -10,23 +10,30 @@ const ShareModal = ({ item, onClose }) => {
   const [password, setPassword] = useState('');
 
   const createShare = async () => {
-    setLoading(true);
-    try {
-      const endpoint = item.type === 'folder' ? `/folders/${item.id}/share` : `/files/${item.id}/share`;
-      const response = await API.post(endpoint, {
-        expiresAt: expiresAt || null,
-        password: password || null
-      });
-      
+  setLoading(true);
+  try {
+    const endpoint = item.type === 'folder' ? `/folders/${item.id}/share` : `/files/${item.id}/share`;
+    const response = await API.post(endpoint, {
+      expiresAt: expiresAt || null,
+      password: password || null
+    });
+    
+    console.log('Share response:', response.data);
+    
+    // Le backend retourne { success, message, data: { id, token, url, expiresAt } }
+    if (response.data.data?.url) {
+      setShareLink(response.data.data.url);
+    } else {
       const baseUrl = window.location.origin;
-      setShareLink(`${baseUrl}/share/${response.data.token}`);
-    } catch (error) {
-      console.error('Share error:', error);
-    } finally {
-      setLoading(false);
+      const token = response.data.data?.token || response.data.token;
+      setShareLink(`${baseUrl}/share/${token}`);
     }
-  };
-
+  } catch (error) {
+    console.error('Share error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareLink);

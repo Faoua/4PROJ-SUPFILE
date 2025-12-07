@@ -160,16 +160,31 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
           key={`folder-${folder.id}`}
           className="group relative bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:border-indigo-500/50 hover:bg-slate-700/50 transition-all cursor-pointer"
         >
-          <button
-            onClick={() => onFolderClick(folder.id, folder.name)}
-            className="w-full text-left"
-          >
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-3">
-              <Folder className="w-6 h-6 text-indigo-400" />
-            </div>
-            <p className="text-white font-medium truncate">{folder.name}</p>
-            <p className="text-xs text-slate-400 mt-1">{formatDate(folder.updatedAt)}</p>
-          </button>
+         <div className="w-full text-left">
+  <button
+    onClick={() => !renaming && onFolderClick(folder.id, folder.name)}
+    className="w-full"
+  >
+    <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-3">
+      <Folder className="w-6 h-6 text-indigo-400" />
+    </div>
+  </button>
+  {renaming === `folder-${folder.id}` ? (
+    <input
+      type="text"
+      value={newName}
+      onChange={(e) => setNewName(e.target.value)}
+      onBlur={() => handleRename('folder', folder.id)}
+      onKeyDown={(e) => e.key === 'Enter' && handleRename('folder', folder.id)}
+      onClick={(e) => e.stopPropagation()}
+      className="bg-slate-700 px-2 py-1 rounded text-white w-full text-sm"
+      autoFocus
+    />
+  ) : (
+    <p className="text-white font-medium truncate">{folder.name}</p>
+  )}
+  <p className="text-xs text-slate-400 mt-1">{formatDate(folder.updatedAt)}</p>
+</div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <ItemMenu
               type="folder"
@@ -191,11 +206,24 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
             key={`file-${file.id}`}
             className="group relative bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:border-indigo-500/50 hover:bg-slate-700/50 transition-all"
           >
-            <div className="w-12 h-12 rounded-xl bg-slate-700/50 flex items-center justify-center mb-3">
-              <IconComponent className="w-6 h-6 text-slate-400" />
-            </div>
-            <p className="text-white font-medium truncate">{file.originalName || file.name}</p>
-            <p className="text-xs text-slate-400 mt-1">{formatSize(file.size)}</p>
+<div className="w-12 h-12 rounded-xl bg-slate-700/50 flex items-center justify-center mb-3">
+  <IconComponent className="w-6 h-6 text-slate-400" />
+</div>
+{renaming === `file-${file.id}` ? (
+  <input
+    type="text"
+    value={newName}
+    onChange={(e) => setNewName(e.target.value)}
+    onBlur={() => handleRename('file', file.id)}
+    onKeyDown={(e) => e.key === 'Enter' && handleRename('file', file.id)}
+    onClick={(e) => e.stopPropagation()}
+    className="bg-slate-700 px-2 py-1 rounded text-white w-full text-sm"
+    autoFocus
+  />
+) : (
+  <p className="text-white font-medium truncate">{file.originalName || file.name}</p>
+)}
+<p className="text-xs text-slate-400 mt-1">{formatSize(file.size)}</p>
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <ItemMenu
                 type="file"
