@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [view, setView] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
+  const [currentView, setCurrentView] = useState('files'); // 'files', 'recent', 'favorites', 'trash'
   
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
@@ -30,29 +31,56 @@ const Dashboard = () => {
   const fetchFiles = useCallback(async () => {
     try {
       setLoading(true);
-      const [filesRes, foldersRes] = await Promise.all([
-        API.get('/files', { params: { folderId: currentFolder } }),
-        API.get('/folders', { params: { parentId: currentFolder } })
-      ]);
       
-      setFiles(filesRes.data.files || []);
-      setFolders(foldersRes.data.folders || []);
-      
-      if (filesRes.data.storageUsed !== undefined) {
-        setStorageUsed(filesRes.data.storageUsed);
+      if (currentView === 'recent') {
+        const response = await API.get('/recent');
+        setFiles(response.data.files || []);
+        setFolders(response.data.folders || []);
+      } else if (currentView === 'favorites') {
+        const response = await API.get('/favorites');
+        setFiles(response.data.files || []);
+        setFolders(response.data.folders || []);
+      } else if (currentView === 'trash') {
+        const response = await API.get('/files', { params: { includeDeleted: 'true' } });
+        const allFiles = response.data.files || [];
+        setFiles(allFiles.filter(f => f.isDeleted));
+        setFolders([]);
+      } else {
+        const [filesRes, foldersRes] = await Promise.all([
+          API.get('/files', { params: { folderId: currentFolder } }),
+          API.get('/folders', { params: { parentId: currentFolder } })
+        ]);
+        
+        setFiles(filesRes.data.files || []);
+        setFolders(foldersRes.data.folders || []);
+        
+        if (filesRes.data.storageUsed !== undefined) {
+          setStorageUsed(filesRes.data.storageUsed);
+        }
       }
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
       setLoading(false);
     }
-  }, [currentFolder]);
+  }, [currentFolder, currentView]);
 
   useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
 
+  const handleViewChange = (newView) => {
+    setCurrentView(newView);
+    setCurrentFolder(null);
+    setFolderPath([]);
+    setSearchResults(null);
+    setSearchQuery('');
+  };
+
   const navigateToFolder = (folderId, folderName) => {
+    if (currentView !== 'files') {
+      setCurrentView('files');
+    }
     if (folderId) {
       setFolderPath([...folderPath, { id: folderId, name: folderName }]);
     }
@@ -133,15 +161,39 @@ const Dashboard = () => {
     }
   };
 
+  const handleToggleFavorite = async (type, id) => {
+    try {
+      if (type === 'file') {
+        await API.patch(`/files/${id}/favorite`);
+      } else {
+        await API.patch(`/folders/${id}/favorite`);
+      }
+      fetchFiles();
+    } catch (error) {
+      console.error('Erreur favori:', error);
+    }
+  };
+
   const displayFiles = searchResults ? searchResults.files || [] : files;
   const displayFolders = searchResults ? searchResults.folders || [] : folders;
+
+  const getViewTitle = () => {
+    switch (currentView) {
+      case 'recent': return 'Récents';
+      case 'favorites': return 'Favoris';
+      case 'trash': return 'Corbeille';
+      default: return 'Mes fichiers';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 flex">
       <Sidebar 
         storageUsed={storageUsed} 
         storageLimit={storageLimit}
-        onNavigateHome={() => navigateBack(-1)}
+        currentView={currentView}
+        onViewChange={handleViewChange}
+        onNavigateHome={() => { handleViewChange('files'); navigateBack(-1); }}
       />
       
       <div className="flex-1 flex flex-col">
@@ -158,12 +210,12 @@ const Dashboard = () => {
         <main className="flex-1 p-6 overflow-auto">
           <div className="flex items-center gap-2 mb-6 text-sm">
             <button 
-              onClick={() => navigateBack(-1)}
+              onClick={() => { handleViewChange('files'); navigateBack(-1); }}
               className="text-slate-400 hover:text-white transition-colors"
             >
-              Mes fichiers
+              {getViewTitle()}
             </button>
-            {folderPath.map((folder, index) => (
+            {currentView === 'files' && folderPath.map((folder, index) => (
               <div key={folder.id} className="flex items-center gap-2">
                 <span className="text-slate-600">/</span>
                 <button
@@ -193,6 +245,8 @@ const Dashboard = () => {
             onRename={handleRename}
             onDownload={handleDownload}
             onShare={setShareItem}
+            onToggleFavorite={handleToggleFavorite}
+            showFavoriteOption={currentView !== 'trash'}
           />
         </main>
       </div>
