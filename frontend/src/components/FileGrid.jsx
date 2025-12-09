@@ -1,7 +1,7 @@
-import { Folder, File, Image, Film, Music, FileText, MoreVertical, Download, Trash2, Edit, Share2, Eye } from 'lucide-react';
+import { Folder, File, Image, Film, Music, FileText, MoreVertical, Download, Trash2, Edit, Share2, Eye, Star } from 'lucide-react';
 import { useState } from 'react';
 
-const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview, onDelete, onRename, onDownload, onShare }) => {
+const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview, onDelete, onRename, onDownload, onShare, onToggleFavorite, showFavoriteOption = true }) => {
   const [menuOpen, setMenuOpen] = useState(null);
   const [renaming, setRenaming] = useState(null);
   const [newName, setNewName] = useState('');
@@ -77,6 +77,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                     className="flex items-center gap-3 text-white hover:text-indigo-400"
                   >
                     <Folder className="w-5 h-5 text-indigo-400" />
+                    {folder.isFavorite && <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
                     {renaming === `folder-${folder.id}` ? (
                       <input
                         type="text"
@@ -103,6 +104,8 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                     onRename={() => { setRenaming(`folder-${folder.id}`); setNewName(folder.name); }}
                     onDelete={() => onDelete('folder', folder.id)}
                     onShare={() => onShare({ type: 'folder', ...folder })}
+                    onToggleFavorite={showFavoriteOption ? () => onToggleFavorite('folder', folder.id) : null}
+                    isFavorite={folder.isFavorite}
                   />
                 </td>
               </tr>
@@ -114,6 +117,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <IconComponent className="w-5 h-5 text-slate-400" />
+                      {file.isFavorite && <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
                       {renaming === `file-${file.id}` ? (
                         <input
                           type="text"
@@ -142,6 +146,8 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                       onRename={() => { setRenaming(`file-${file.id}`); setNewName(file.originalName || file.name); }}
                       onDelete={() => onDelete('file', file.id)}
                       onShare={() => onShare({ type: 'file', ...file })}
+                      onToggleFavorite={showFavoriteOption ? () => onToggleFavorite('file', file.id) : null}
+                      isFavorite={file.isFavorite}
                     />
                   </td>
                 </tr>
@@ -160,31 +166,34 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
           key={`folder-${folder.id}`}
           className="group relative bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:border-indigo-500/50 hover:bg-slate-700/50 transition-all cursor-pointer"
         >
-         <div className="w-full text-left">
-  <button
-    onClick={() => !renaming && onFolderClick(folder.id, folder.name)}
-    className="w-full"
-  >
-    <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-3">
-      <Folder className="w-6 h-6 text-indigo-400" />
-    </div>
-  </button>
-  {renaming === `folder-${folder.id}` ? (
-    <input
-      type="text"
-      value={newName}
-      onChange={(e) => setNewName(e.target.value)}
-      onBlur={() => handleRename('folder', folder.id)}
-      onKeyDown={(e) => e.key === 'Enter' && handleRename('folder', folder.id)}
-      onClick={(e) => e.stopPropagation()}
-      className="bg-slate-700 px-2 py-1 rounded text-white w-full text-sm"
-      autoFocus
-    />
-  ) : (
-    <p className="text-white font-medium truncate">{folder.name}</p>
-  )}
-  <p className="text-xs text-slate-400 mt-1">{formatDate(folder.updatedAt)}</p>
-</div>
+          <div className="w-full text-left">
+            <button
+              onClick={() => !renaming && onFolderClick(folder.id, folder.name)}
+              className="w-full"
+            >
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-3 relative">
+                <Folder className="w-6 h-6 text-indigo-400" />
+                {folder.isFavorite && (
+                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 absolute -top-1 -right-1" />
+                )}
+              </div>
+            </button>
+            {renaming === `folder-${folder.id}` ? (
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onBlur={() => handleRename('folder', folder.id)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRename('folder', folder.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-700 px-2 py-1 rounded text-white w-full text-sm"
+                autoFocus
+              />
+            ) : (
+              <p className="text-white font-medium truncate">{folder.name}</p>
+            )}
+            <p className="text-xs text-slate-400 mt-1">{formatDate(folder.updatedAt)}</p>
+          </div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <ItemMenu
               type="folder"
@@ -194,6 +203,8 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
               onRename={() => { setRenaming(`folder-${folder.id}`); setNewName(folder.name); }}
               onDelete={() => onDelete('folder', folder.id)}
               onShare={() => onShare({ type: 'folder', ...folder })}
+              onToggleFavorite={showFavoriteOption ? () => onToggleFavorite('folder', folder.id) : null}
+              isFavorite={folder.isFavorite}
             />
           </div>
         </div>
@@ -206,24 +217,27 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
             key={`file-${file.id}`}
             className="group relative bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:border-indigo-500/50 hover:bg-slate-700/50 transition-all"
           >
-<div className="w-12 h-12 rounded-xl bg-slate-700/50 flex items-center justify-center mb-3">
-  <IconComponent className="w-6 h-6 text-slate-400" />
-</div>
-{renaming === `file-${file.id}` ? (
-  <input
-    type="text"
-    value={newName}
-    onChange={(e) => setNewName(e.target.value)}
-    onBlur={() => handleRename('file', file.id)}
-    onKeyDown={(e) => e.key === 'Enter' && handleRename('file', file.id)}
-    onClick={(e) => e.stopPropagation()}
-    className="bg-slate-700 px-2 py-1 rounded text-white w-full text-sm"
-    autoFocus
-  />
-) : (
-  <p className="text-white font-medium truncate">{file.originalName || file.name}</p>
-)}
-<p className="text-xs text-slate-400 mt-1">{formatSize(file.size)}</p>
+            <div className="w-12 h-12 rounded-xl bg-slate-700/50 flex items-center justify-center mb-3 relative">
+              <IconComponent className="w-6 h-6 text-slate-400" />
+              {file.isFavorite && (
+                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 absolute -top-1 -right-1" />
+              )}
+            </div>
+            {renaming === `file-${file.id}` ? (
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onBlur={() => handleRename('file', file.id)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRename('file', file.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-700 px-2 py-1 rounded text-white w-full text-sm"
+                autoFocus
+              />
+            ) : (
+              <p className="text-white font-medium truncate">{file.originalName || file.name}</p>
+            )}
+            <p className="text-xs text-slate-400 mt-1">{formatSize(file.size)}</p>
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <ItemMenu
                 type="file"
@@ -235,6 +249,8 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                 onRename={() => { setRenaming(`file-${file.id}`); setNewName(file.originalName || file.name); }}
                 onDelete={() => onDelete('file', file.id)}
                 onShare={() => onShare({ type: 'file', ...file })}
+                onToggleFavorite={showFavoriteOption ? () => onToggleFavorite('file', file.id) : null}
+                isFavorite={file.isFavorite}
               />
             </div>
           </div>
@@ -244,7 +260,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
   );
 };
 
-const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, onRename, onDelete, onShare }) => {
+const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, onRename, onDelete, onShare, onToggleFavorite, isFavorite }) => {
   const id = `${type}-${item.id}`;
   const isOpen = menuOpen === id;
 
@@ -286,6 +302,15 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
               <Share2 className="w-4 h-4" />
               Partager
             </button>
+            {onToggleFavorite && (
+              <button
+                onClick={() => { onToggleFavorite(); setMenuOpen(null); }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
+              >
+                <Star className={`w-4 h-4 ${isFavorite ? 'text-yellow-400 fill-yellow-400' : ''}`} />
+                {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              </button>
+            )}
             <button
               onClick={() => { onRename(); setMenuOpen(null); }}
               className="w-full flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
