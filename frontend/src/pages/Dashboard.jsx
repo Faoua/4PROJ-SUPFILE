@@ -21,7 +21,7 @@ const Dashboard = () => {
   const [view, setView] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
-  const [currentView, setCurrentView] = useState('files'); // 'files', 'recent', 'favorites', 'trash'
+  const [currentView, setCurrentView] = useState('files');
   
   const [showUpload, setShowUpload] = useState(false);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
@@ -161,6 +161,26 @@ const Dashboard = () => {
     }
   };
 
+  const handleDownloadZip = async (folder) => {
+    try {
+      const response = await API.get(`/folders/${folder.id}/download`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${folder.name}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur téléchargement ZIP:', error);
+      alert('Erreur lors du téléchargement du dossier');
+    }
+  };
+
   const handleToggleFavorite = async (type, id) => {
     try {
       if (type === 'file') {
@@ -244,6 +264,7 @@ const Dashboard = () => {
             onDelete={handleDelete}
             onRename={handleRename}
             onDownload={handleDownload}
+            onDownloadZip={handleDownloadZip}
             onShare={setShareItem}
             onToggleFavorite={handleToggleFavorite}
             showFavoriteOption={currentView !== 'trash'}
