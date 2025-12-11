@@ -32,6 +32,13 @@ services:
       PORT: 5000
       BACKEND_URL: http://localhost:5000
       FRONTEND_URL: http://localhost:3000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: supfile
+      DB_USER: root
+      DB_PASSWORD: supfile_password
+      JWT_SECRET: supfile_jwt_secret_key_2024
+      JWT_EXPIRE: 7d
     volumes:
       - ./backend:/app
       - /app/node_modules
