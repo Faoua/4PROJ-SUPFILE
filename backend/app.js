@@ -13,6 +13,7 @@ const fileRoutes = require('./src/routes/fileRoutes');
 const folderRoutes = require('./src/routes/folderRoutes');
 const featuresRoutes = require('./src/routes/featuresRoutes');
 const recentRoutes = require('./src/routes/recentRoutes');
+const shareRoutes = require('./src/routes/shareRoutes');
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/folders', folderRoutes);
+app.use('/api/share', shareRoutes);
 app.use('/api', featuresRoutes);
 app.use('/api', recentRoutes);
 
