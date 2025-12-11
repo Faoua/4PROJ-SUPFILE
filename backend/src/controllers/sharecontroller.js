@@ -226,7 +226,7 @@ const accessShare = async (req, res) => {
     // Incrémenter le compteur de téléchargements (utilisé comme compteur de vues)
     await share.increment('downloadCount');
 
-    if (share.FileId && share.File) {
+    if (share.fileId && share.File) {
       res.json({
         success: true,
         data: {
@@ -236,7 +236,7 @@ const accessShare = async (req, res) => {
           mimeType: share.File.mimeType
         }
       });
-    } else if (share.FolderId && share.Folder) {
+    } else if (share.folderId && share.Folder) {
       // Récupérer le contenu du dossier
       const files = await File.findAll({
         where: { folderId: share.Folder.id }
@@ -288,10 +288,10 @@ const downloadShare = async (req, res) => {
 
     const share = await Share.findOne({
       where: { shareToken: token },
-      include: [
-        { model: File, as: 'file' },
-        { model: Folder, as: 'folder' }
-      ]
+   include: [
+  { model: File, as: 'File' },
+  { model: Folder, as: 'Folder' }
+]
     });
 
     if (!share) {
@@ -319,9 +319,9 @@ const downloadShare = async (req, res) => {
 
     let fileToDownload;
 
-    if (share.FileId) {
+    if (share.fileId) {
       fileToDownload = share.File;
-    } else if (share.FolderId && fileId) {
+    } else if (share.folderId && fileId) {
       fileToDownload = await File.findOne({
         where: { id: fileId, folderId: share.Folder.id }
       });
