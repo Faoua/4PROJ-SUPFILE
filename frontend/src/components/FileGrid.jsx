@@ -1,7 +1,7 @@
 import { Folder, File, Image, Film, Music, FileText, MoreVertical, Download, Trash2, Edit, Share2, Eye, Star } from 'lucide-react';
 import { useState } from 'react';
 
-const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview, onDelete, onRename, onDownload, onShare, onToggleFavorite, showFavoriteOption = true }) => {
+const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview, onDelete, onRename, onDownload, onDownloadZip, onShare, onToggleFavorite, showFavoriteOption = true }) => {
   const [menuOpen, setMenuOpen] = useState(null);
   const [renaming, setRenaming] = useState(null);
   const [newName, setNewName] = useState('');
@@ -9,7 +9,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
   const getFileIcon = (mimeType) => {
     if (!mimeType) return File;
     if (mimeType.startsWith('image/')) return Image;
-    if (mimeType.startsWith('video/')) return Film;
+    if (mimeType.startsWith('videoa/')) return Film;
     if (mimeType.startsWith('audio/')) return Music;
     if (mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text')) return FileText;
     return File;
@@ -56,6 +56,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
     );
   }
 
+  // VUE LISTE
   if (view === 'list') {
     return (
       <div className="bg-slate-800/30 rounded-xl border border-slate-700 overflow-hidden">
@@ -69,6 +70,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
             </tr>
           </thead>
           <tbody>
+            {/* DOSSIERS - Vue Liste */}
             {folders.map((folder) => (
               <tr key={`folder-${folder.id}`} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-all">
                 <td className="px-4 py-3">
@@ -101,6 +103,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                     item={folder}
                     menuOpen={menuOpen}
                     setMenuOpen={setMenuOpen}
+                    onDownloadZip={() => onDownloadZip(folder)}
                     onRename={() => { setRenaming(`folder-${folder.id}`); setNewName(folder.name); }}
                     onDelete={() => onDelete('folder', folder.id)}
                     onShare={() => onShare({ type: 'folder', ...folder })}
@@ -110,6 +113,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
                 </td>
               </tr>
             ))}
+            {/* FICHIERS - Vue Liste */}
             {files.map((file) => {
               const IconComponent = getFileIcon(file.mimeType);
               return (
@@ -159,8 +163,10 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
     );
   }
 
+  // VUE GRILLE
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      {/* DOSSIERS - Vue Grille */}
       {folders.map((folder) => (
         <div
           key={`folder-${folder.id}`}
@@ -200,6 +206,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
               item={folder}
               menuOpen={menuOpen}
               setMenuOpen={setMenuOpen}
+              onDownloadZip={() => onDownloadZip(folder)}
               onRename={() => { setRenaming(`folder-${folder.id}`); setNewName(folder.name); }}
               onDelete={() => onDelete('folder', folder.id)}
               onShare={() => onShare({ type: 'folder', ...folder })}
@@ -210,6 +217,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
         </div>
       ))}
 
+      {/* FICHIERS - Vue Grille */}
       {files.map((file) => {
         const IconComponent = getFileIcon(file.mimeType);
         return (
@@ -260,7 +268,7 @@ const FileGrid = ({ files, folders, loading, view, onFolderClick, onFilePreview,
   );
 };
 
-const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, onRename, onDelete, onShare, onToggleFavorite, isFavorite }) => {
+const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, onDownloadZip, onRename, onDelete, onShare, onToggleFavorite, isFavorite }) => {
   const id = `${type}-${item.id}`;
   const isOpen = menuOpen === id;
 
@@ -277,6 +285,7 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
         <>
           <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
           <div className="absolute right-0 top-8 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-20 py-2">
+            {/* Aperçu - fichiers uniquement */}
             {type === 'file' && onPreview && (
               <button
                 onClick={() => { onPreview(); setMenuOpen(null); }}
@@ -286,6 +295,7 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
                 Aperçu
               </button>
             )}
+            {/* Télécharger - fichiers uniquement */}
             {type === 'file' && onDownload && (
               <button
                 onClick={() => { onDownload(); setMenuOpen(null); }}
@@ -295,6 +305,17 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
                 Télécharger
               </button>
             )}
+            {/* Télécharger en ZIP - dossiers uniquement */}
+            {type === 'folder' && onDownloadZip && (
+              <button
+                onClick={() => { onDownloadZip(); setMenuOpen(null); }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
+              >
+                <Download className="w-4 h-4" />
+                Télécharger en ZIP
+              </button>
+            )}
+            {/* Partager */}
             <button
               onClick={() => { onShare(); setMenuOpen(null); }}
               className="w-full flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
@@ -302,6 +323,7 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
               <Share2 className="w-4 h-4" />
               Partager
             </button>
+            {/* Favoris */}
             {onToggleFavorite && (
               <button
                 onClick={() => { onToggleFavorite(); setMenuOpen(null); }}
@@ -311,6 +333,7 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
                 {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               </button>
             )}
+            {/* Renommer */}
             <button
               onClick={() => { onRename(); setMenuOpen(null); }}
               className="w-full flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
@@ -318,6 +341,7 @@ const ItemMenu = ({ type, item, menuOpen, setMenuOpen, onPreview, onDownload, on
               <Edit className="w-4 h-4" />
               Renommer
             </button>
+            {/* Supprimer */}
             <button
               onClick={() => { onDelete(); setMenuOpen(null); }}
               className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-red-500/10 transition-all"
