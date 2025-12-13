@@ -1,4 +1,4 @@
-import { Cloud, Home, Trash2, Star, Clock, LogOut } from 'lucide-react';
+import { Cloud, Home, Trash2, Star, Clock, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -79,8 +79,16 @@ const Sidebar = ({ storageUsed, storageLimit, currentView, onViewChange, onNavig
         </p>
       </div>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-slate-700">
+      {/* Settings & Logout */}
+      <div className="p-4 border-t border-slate-700 space-y-2">
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all"
+        >
+          <Settings className="w-5 h-5" />
+          <span>Paramètres</span>
+        </button>
+        
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all"
