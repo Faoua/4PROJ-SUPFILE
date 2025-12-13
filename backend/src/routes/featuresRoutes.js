@@ -9,8 +9,7 @@ const { protect: auth } = require('../middleware/authMiddleware');
 
 // Preview routes
 router.get('/files/:id/preview-info', auth, previewController.getPreviewInfo);
-router.get('/files/:id/preview', auth, previewController.getPreview);  // <-- getPreview, pas previewFile
-
+router.get('/files/:id/preview', auth, previewController.getPreview);   
 // File share routes
 router.post('/files/:id/share', auth, shareController.createFileShare);
 router.get('/files/:id/shares', auth, shareController.getFileShares);
@@ -20,8 +19,8 @@ router.post('/folders/:id/share', auth, shareController.createFolderShare);
 router.get('/folders/:id/shares', auth, shareController.getFolderShares);
 
 // Public share access (no auth required)
-router.get('/share/:token', shareController.accessShare);  // <-- accessShare, pas getShareByToken
-router.get('/share/:token/download', shareController.downloadShare);  // <-- downloadShare, pas downloadSharedItem
+router.get('/share/:token', shareController.accessShare);   
+router.get('/share/:token/download', shareController.downloadShare);   
 
 // Share management
 router.delete('/shares/:id', auth, shareController.deleteShare);
@@ -29,5 +28,6 @@ router.delete('/shares/:id', auth, shareController.deleteShare);
 // Search routes
 router.get('/search', auth, searchController.search);
 router.post('/search/advanced', auth, searchController.advancedSearch);
+
 
 module.exports = router;
