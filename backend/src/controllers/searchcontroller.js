@@ -1,4 +1,3 @@
-// backend/src/controllers/searchController.js
 
 const { File, Folder } = require('../models');
 const { Op } = require('sequelize');
@@ -247,4 +246,5 @@ module.exports = {
   search,
   advancedSearch
 };
+
  
