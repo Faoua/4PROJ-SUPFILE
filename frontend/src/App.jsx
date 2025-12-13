@@ -5,7 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SharedFile from './pages/SharedFile';
 import AuthSuccess from './pages/AuthSuccess';
-import Settings from './pages/Settings';  // ← AJOUTE
+import Settings from './pages/Settings'; 
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
