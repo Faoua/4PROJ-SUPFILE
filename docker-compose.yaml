@@ -39,6 +39,10 @@ services:
       DB_PASSWORD: supfile_password
       JWT_SECRET: supfile_jwt_secret_key_2024
       JWT_EXPIRE: 7d
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
     volumes:
       - ./backend:/app
       - /app/node_modules

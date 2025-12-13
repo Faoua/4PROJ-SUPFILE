@@ -8,6 +8,7 @@ import UploadModal from '../components/UploadModal';
 import CreateFolderModal from '../components/CreateFolderModal';
 import PreviewModal from '../components/PreviewModal';
 import ShareModal from '../components/ShareModal';
+import MoveModal from '../components/MoveModal';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
   const [shareItem, setShareItem] = useState(null);
+  const [moveItem, setMoveItem] = useState(null);
 
   const fetchFiles = useCallback(async () => {
     try {
@@ -194,6 +196,20 @@ const Dashboard = () => {
     }
   };
 
+  const handleMove = async (item, targetFolderId) => {
+    try {
+      if (item.type === 'file') {
+        await API.patch(`/files/${item.id}/move`, { folderId: targetFolderId });
+      } else {
+        await API.patch(`/folders/${item.id}/move`, { newParentId: targetFolderId });
+      }
+      fetchFiles();
+    } catch (error) {
+      console.error('Erreur déplacement:', error);
+      alert('Erreur lors du déplacement');
+    }
+  };
+
   const displayFiles = searchResults ? searchResults.files || [] : files;
   const displayFolders = searchResults ? searchResults.folders || [] : folders;
 
@@ -267,6 +283,7 @@ const Dashboard = () => {
             onDownloadZip={handleDownloadZip}
             onShare={setShareItem}
             onToggleFavorite={handleToggleFavorite}
+            onMove={currentView === 'files' ? setMoveItem : null}
             showFavoriteOption={currentView !== 'trash'}
           />
         </main>
@@ -294,6 +311,15 @@ const Dashboard = () => {
 
       {shareItem && (
         <ShareModal item={shareItem} onClose={() => setShareItem(null)} />
+      )}
+
+      {moveItem && (
+        <MoveModal
+          isOpen={!!moveItem}
+          item={moveItem}
+          onClose={() => setMoveItem(null)}
+          onMove={handleMove}
+        />
       )}
     </div>
   );
