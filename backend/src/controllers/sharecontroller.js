@@ -1,4 +1,3 @@
-// backend/src/controllers/shareController.js
 
 const { File, Folder, Share, User } = require('../models');
 const crypto = require('crypto');
@@ -398,4 +397,5 @@ module.exports = {
   accessShare,
   downloadShare,
   deleteShare
+
 };
