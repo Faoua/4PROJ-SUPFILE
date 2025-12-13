@@ -4,9 +4,8 @@ const passport = require('../config/passport');
 const authController = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
-// ==========================================
-// ROUTES TRADITIONNELLES
-// ==========================================
+ // ROUTES TRADITIONNELLES
+ 
 
 // Routes publiques
 router.post('/register', authController.register);
@@ -15,10 +14,8 @@ router.post('/login', authController.login);
 // Routes protégées
 router.get('/me', protect, authController.getMe);
 
-// ==========================================
-// ROUTES OAUTH2 - GOOGLE
-// ==========================================
-
+ // ROUTES OAUTH2 - GOOGLE
+ 
 // Initier l'authentification Google
 router.get('/google', 
   passport.authenticate('google', { 
@@ -36,10 +33,8 @@ router.get('/google/callback',
   authController.googleCallback
 );
 
-// ==========================================
-// ROUTES OAUTH2 - GITHUB
-// ==========================================
-
+ // ROUTES OAUTH2 - GITHUB
+ 
 // Initier l'authentification GitHub
 router.get('/github',
   passport.authenticate('github', { 
@@ -57,10 +52,8 @@ router.get('/github/callback',
   authController.githubCallback
 );
 
-// ==========================================
-// GESTION DU PROFIL
-// ==========================================
-
+ // GESTION DU PROFIL
+ 
 // Mettre à jour le profil
 router.patch('/profile', protect, authController.updateProfile);
 
@@ -70,16 +63,15 @@ router.patch('/change-password', protect, authController.changePassword);
 // Définir un mot de passe (pour comptes OAuth uniquement)
 router.post('/set-password', protect, authController.setPassword);
 
-// ==========================================
-// GESTION DES COMPTES LIÉS
-// ==========================================
-
+ // GESTION DES COMPTES LIÉS
+ 
 // Obtenir les comptes liés
 router.get('/linked-accounts', protect, authController.getLinkedAccounts);
 
 // Délier les comptes OAuth
 router.delete('/unlink-google', protect, authController.unlinkGoogle);
 router.delete('/unlink-github', protect, authController.unlinkGitHub);
+
 
 
 module.exports = router;

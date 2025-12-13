@@ -8,7 +8,7 @@ const Share = sequelize.define('Share', {
     primaryKey: true,
   },
   shareToken: {
-    type: DataTypes.STRING(64),  // <-- Changé de CHAR(36) à STRING(64)
+    type: DataTypes.STRING(64), 
     allowNull: false,
     unique: true,
   },
@@ -44,5 +44,6 @@ const Share = sequelize.define('Share', {
   timestamps: true,
   tableName: 'shares'
 });
+
 
 module.exports = Share;

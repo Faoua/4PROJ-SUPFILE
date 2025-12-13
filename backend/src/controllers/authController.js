@@ -10,9 +10,7 @@ const generateToken = (userId) => {
   );
 };
 
-// ==========================================
 // AUTHENTIFICATION DE BASE
-// ==========================================
 
 // Inscription
 exports.register = async (req, res) => {
@@ -171,9 +169,7 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// ==========================================
 // CALLBACKS OAUTH2
-// ==========================================
 
 // Callback Google
 exports.googleCallback = (req, res) => {
@@ -205,9 +201,7 @@ exports.githubCallback = (req, res) => {
   }
 };
 
-// ==========================================
 // GESTION DU PROFIL
-// ==========================================
 
 // Mettre à jour le profil
 exports.updateProfile = async (req, res) => {
@@ -602,4 +596,5 @@ exports.getLinkedAccounts = async (req, res) => {
       message: 'Erreur lors de la récupération des comptes liés'
     });
   }
+
 };
