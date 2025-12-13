@@ -227,15 +227,16 @@ const accessShare = async (req, res) => {
     await share.increment('downloadCount');
 
     if (share.fileId && share.File) {
-      res.json({
-        success: true,
-        data: {
-          type: 'file',
-          name: share.File.name,
-          size: share.File.size,
-          mimeType: share.File.mimeType
-        }
-      });
+     res.json({
+  success: true,
+  data: {
+    type: 'file',
+    name: share.File.originalName || share.File.name,
+    originalName: share.File.originalName,
+    size: share.File.size,
+    mimeType: share.File.mimeType
+  }
+});
     } else if (share.folderId && share.Folder) {
       // Récupérer le contenu du dossier
       const files = await File.findAll({

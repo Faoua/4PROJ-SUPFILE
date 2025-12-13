@@ -47,13 +47,25 @@ const SharedFile = () => {
         responseType: 'blob'
       });
       
+      // Récupérer le nom du fichier depuis le header Content-Disposition
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = shareData?.data?.originalName || shareData?.data?.name || 'download';
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = decodeURIComponent(filenameMatch[1]);
+        }
+      }
+      
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', shareData?.file?.originalName || 'download');
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Download error:', err);
     }
@@ -111,6 +123,9 @@ const SharedFile = () => {
     );
   }
 
+  // Récupérer le nom du fichier/dossier
+  const itemName = shareData?.data?.originalName || shareData?.data?.name || 'Fichier partagé';
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4">
       <div className="w-full max-w-md">
@@ -123,13 +138,17 @@ const SharedFile = () => {
 
         <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 text-center">
           <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-white mb-2">
-            {shareData?.file?.originalName || shareData?.folder?.name || 'Fichier partagé'}
-          </h2>
+          <h2 className="text-lg font-semibold text-white mb-2">{itemName}</h2>
+          
+          {shareData?.data?.size && (
+            <p className="text-slate-400 text-sm mb-4">
+              {(shareData.data.size / 1024 / 1024).toFixed(2)} Mo
+            </p>
+          )}
           
           <button
             onClick={handleDownload}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl"
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl hover:opacity-90 transition-opacity"
           >
             <Download className="w-5 h-5" />
             Télécharger
