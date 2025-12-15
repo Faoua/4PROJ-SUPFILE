@@ -120,17 +120,37 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (type, id) => {
-    if (!confirm('Supprimer cet élément ?')) return;
-    
-    try {
-      if (type === 'file') {
-        await API.delete(`/files/${id}`);
-      } else {
-        await API.delete(`/folders/${id}`);
+    // Si on est dans la corbeille, suppression définitive
+    if (currentView === 'trash') {
+      if (!confirm('Supprimer définitivement ? Cette action est irréversible.')) return;
+      
+      try {
+        if (type === 'file') {
+          const response = await API.delete(`/files/${id}/permanent`);
+          if (response.data.storageUsed !== undefined) {
+            setStorageUsed(response.data.storageUsed);
+          }
+        } else {
+          await API.delete(`/folders/${id}/permanent`);
+        }
+        fetchFiles();
+      } catch (error) {
+        console.error('Erreur suppression définitive:', error);
       }
-      fetchFiles();
-    } catch (error) {
-      console.error('Erreur suppression:', error);
+    } else {
+      // Sinon, soft delete (corbeille)
+      if (!confirm('Supprimer cet élément ?')) return;
+      
+      try {
+        if (type === 'file') {
+          await API.delete(`/files/${id}`);
+        } else {
+          await API.delete(`/folders/${id}`);
+        }
+        fetchFiles();
+      } catch (error) {
+        console.error('Erreur suppression:', error);
+      }
     }
   };
 

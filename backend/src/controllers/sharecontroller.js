@@ -280,18 +280,21 @@ const accessShare = async (req, res) => {
 };
 
 // Télécharger depuis un partage public
+// Télécharger depuis un partage public
 const downloadShare = async (req, res) => {
   try {
     const { token } = req.params;
     const { password, fileId } = req.query;
     const fs = require('fs');
+    const archiver = require('archiver');
+    const path = require('path');
 
     const share = await Share.findOne({
       where: { shareToken: token },
-   include: [
-  { model: File, as: 'File' },
-  { model: Folder, as: 'Folder' }
-]
+      include: [
+        { model: File, as: 'File' },
+        { model: Folder, as: 'Folder' }
+      ]
     });
 
     if (!share) {
@@ -317,38 +320,74 @@ const downloadShare = async (req, res) => {
       });
     }
 
-    let fileToDownload;
+    // Si c'est un fichier partagé
+    if (share.fileId && share.File) {
+      const fileToDownload = share.File;
 
-    if (share.fileId) {
-      fileToDownload = share.File;
-    } else if (share.folderId && fileId) {
-      fileToDownload = await File.findOne({
-        where: { id: fileId, folderId: share.Folder.id }
-      });
+      if (!fs.existsSync(fileToDownload.path)) {
+        return res.status(404).json({
+          success: false,
+          message: 'Fichier physique non trouvé'
+        });
+      }
+
+      await share.increment('downloadCount');
+
+      const filename = encodeURIComponent(fileToDownload.originalName || fileToDownload.name);
+      res.setHeader('Content-Type', fileToDownload.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${filename}`);
+      res.setHeader('Content-Length', fileToDownload.size);
+
+      const fileStream = fs.createReadStream(fileToDownload.path);
+      fileStream.pipe(res);
+      return;
     }
 
-    if (!fileToDownload) {
-      return res.status(404).json({
-        success: false,
-        message: 'Fichier non trouvé'
+    // Si c'est un dossier partagé - télécharger en ZIP
+    if (share.folderId && share.Folder) {
+      const folder = share.Folder;
+
+      await share.increment('downloadCount');
+
+      const zipName = `${folder.name}.zip`;
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(zipName)}"; filename*=UTF-8''${encodeURIComponent(zipName)}`);
+
+      const archive = archiver('zip', { zlib: { level: 9 } });
+
+      archive.on('error', (err) => {
+        console.error('Erreur archiver:', err);
+        res.status(500).json({ success: false, message: 'Erreur lors de la compression' });
       });
+
+      archive.pipe(res);
+
+      // Fonction récursive pour ajouter les fichiers
+      const addFolderToArchive = async (folderId, archivePath) => {
+        const files = await File.findAll({ where: { folderId, isDeleted: false } });
+        const subfolders = await Folder.findAll({ where: { parentId: folderId, isDeleted: false } });
+
+        for (const file of files) {
+          if (fs.existsSync(file.path)) {
+            archive.file(file.path, { name: path.join(archivePath, file.originalName || file.name) });
+          }
+        }
+
+        for (const subfolder of subfolders) {
+          await addFolderToArchive(subfolder.id, path.join(archivePath, subfolder.name));
+        }
+      };
+
+      await addFolderToArchive(folder.id, '');
+      archive.finalize();
+      return;
     }
 
-    if (!fs.existsSync(fileToDownload.path)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Fichier physique non trouvé'
-      });
-    }
+    res.status(404).json({
+      success: false,
+      message: 'Contenu partagé non trouvé'
+    });
 
-    await share.increment('downloadCount');
-
-    res.setHeader('Content-Type', fileToDownload.mimeType);
-    res.setHeader('Content-Disposition', `attachment; filename="${fileToDownload.name}"`);
-    res.setHeader('Content-Length', fileToDownload.size);
-
-    const fileStream = fs.createReadStream(fileToDownload.path);
-    fileStream.pipe(res);
   } catch (error) {
     console.error('Erreur downloadShare:', error);
     res.status(500).json({

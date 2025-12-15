@@ -91,8 +91,17 @@ const Settings = () => {
     setLoading(true);
     
     try {
-      await API.patch('/auth/profile', profileForm);
+      const response = await API.patch('/auth/profile', profileForm);
       setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
+      
+      // Mettre à jour le localStorage
+      const updatedUser = response.data.user;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Recharger la page pour rafraîchir le contexte
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       setMessage({ 
         type: 'error', 
